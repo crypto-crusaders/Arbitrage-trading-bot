@@ -1,1 +1,5 @@
 ccxt
+pandas
+numpy
+wazirx_sapi_client
+TA-Lib
