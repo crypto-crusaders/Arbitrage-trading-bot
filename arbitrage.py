@@ -69,12 +69,14 @@ def mainFunction(pair):
     i=0 # 设定循环总次数
     while True:
         datetime_now = str(datetime.datetime.now())[:19]
-        if len(valid_exchange_list)==0 or datetime_now>'2018-09-19 07:31:18': # 确定跳出循环的条件
+        if len(valid_exchange_list)==0 or datetime_now>'2023-09-19 07:31:18': # 确定跳出循环的条件
+            print(f'Time out')
             break
         try:
             result=formTradingDataframe(valid_exchange_list,pair)
             findBestArbitrageOpportunity(result)
         except:
+            print(f'Error occurred')
             continue
         i+=1
     print('all loop times: ',i)
