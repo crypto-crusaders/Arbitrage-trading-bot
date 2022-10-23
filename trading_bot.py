@@ -16,6 +16,12 @@ exchange_names =[
     'bitfinex',
     'bittrex',
     'poloniex',
+    'bitget',
+    'bitmart',
+    'bitvavo',
+    'bitforex',
+    'kuna',
+
 ]
 
 exchange_length = len(exchange_names)
@@ -24,30 +30,42 @@ exchanges = []
 
 def debug(term, value=None):
     print(f'<== {term} ==>\n\n', value, '\n')
-
+def console(value):
+    print(value)
 for i in range(0, exchange_length):
     exchanges.append(getattr(ccxt, exchange_names[i])())
 
+debug('all exchanges', len(ccxt.exchanges))
 debug('exchanges', exchanges)
 
 def fetch_data (ticker):
     debug('fetch', ticker)
+    data = []
+    for i in range(0, exchange_length):
+        ticker_data = getattr(exchanges[i], 'fetch_ticker')(ticker)
 
+        data.append(ticker_data)
+        # debug('ticker data', ticker_data['last'])
     # ticker = exchanges[0].fetch_ticker(ticker)
-    ticker = getattr(exchanges[0], 'fetch_ticker')(ticker)
+    # ticker = getattr(exchanges[0], 'fetch_ticker')(ticker)
     # binance = ccxt.binance()
 
     # ticker = binance.fetch_ticker(ticker)
 
-    debug('price on binance', ticker['last'])
-
+    # debug('price on binance', ticker['last'])
+    return data
 
 def get_trade_recommendation(ticker_df):
     print('get trade recommendation\n\n')
+
+def execute_trade(trade_rec_type, trading_ticker):
+    debug('execute trade')
+
 def run_bot_for_ticker(ccxt_ticker, trading_ticker):
     debug('run bot')
-    fetch_data(ccxt_ticker)
+    ticker_data = fetch_data(ccxt_ticker)
 
+    trade = get_trade_recommendation(ticker_data)
 
 run_bot_for_ticker(CCXT_TICKER_NAME, TRADING_TICKER_NAME)
 
