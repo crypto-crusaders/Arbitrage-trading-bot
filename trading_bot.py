@@ -13,21 +13,8 @@ HOLDING_QUANTITY = 0
 
 MARGIN = 100
 
-exchange_names =[
-    # 'binance',
-    # 'bitfinex',
-    # 'bittrex',
-    # 'poloniex',
-    # 'bitget',
-    # 'bitmart',
-    # 'bitvavo',
-    'bitforex',
-    'kuna',
-]
-
-exchange_length = len(exchange_names)
-
-exchanges = []
+# exchange_id = 'kuna'
+exchange_id = 'binance'
 
 def debug(term, value=None):
     print(f'<== {term} ==>\n\n', value, '\n')
@@ -35,91 +22,61 @@ def debug(term, value=None):
 def console(value):
     print(value)
 
-for i in range(0, exchange_length):
-    exchanges.append(getattr(ccxt, exchange_names[i])())
+def fetch_current_ticker_price(ticker):
+    debug('fetch ticker price')
 
-debug('all exchanges', len(ccxt.exchanges))
-debug('exchanges', exchanges)
+def check_profit_loss(total_price_after_sell,initial_investment,transaction_brokerage, min_profit):
+    apprx_brokerage = transaction_brokerage * initial_investment/100 * 3
+    min_profitable_price = initial_investment + apprx_brokerage + min_profit
+    profit_loss = round(total_price_after_sell - min_profitable_price,3)
+    return profit_loss
 
-def fetch_data (ticker):
-    debug('fetch', ticker)
-    data = []
-    for i in range(0, exchange_length):
-        debug('exchange id', getattr(exchanges[i], 'id'))
-        ticker_data = getattr(exchanges[i], 'fetch_ticker')(ticker)
+def fetch_market_data(id):
+    exchange = getattr(ccxt, id)()
 
-        data.append(ticker_data)
-        debug('ticker', ticker_data)
-        # debug('ticker data', ticker_data['last'])
-    # ticker = exchanges[0].fetch_ticker(ticker)
-    # ticker = getattr(exchanges[0], 'fetch_ticker')(ticker)
-    # binance = ccxt.binance()
+    markets = exchange.load_markets()
 
-    # ticker = binance.fetch_ticker(ticker)
+    return sorted(markets.items()), sorted(markets)
+    # return markets
 
-    # debug('price on binance', ticker['last'])
-    return data
+def get_trade_recommendation(tickers, base):
+    print('get trade recommendation')
 
-def get_trade_recommendation(ticker_df):
-    if not ticker_df or ticker_df == None or len(ticker_df) == 0:
-        print(f'ticker_df should not None')
-        return None
+    combinations = []
 
-    max_ticker = min_ticker = ticker_df[0]
-
-    for item in ticker_df:
-        if item['last'] > max_ticker['last']:
-            max_ticker = item
-        elif item['last'] < min_ticker['last']:
-            min_ticker = item
-
-    return max_ticker, min_ticker    
+    for sym1 in tickers:   
+        sym1_token1 = sym1.split('/')[0]
+        sym1_token2 = sym1.split('/')[1]   
+        if (sym1_token2 == base):
+            for sym2 in tickers:
+                sym2_token1 = sym2.split('/')[0]
+                sym2_token2 = sym2.split('/')[1]
+                if (sym1_token1 == sym2_token2):
+                    for sym3 in tickers:
+                        sym3_token1 = sym3.split('/')[0]
+                        sym3_token2 = sym3.split('/')[1]
+                        if((sym2_token1 == sym3_token1) and (sym3_token2 == sym1_token2)):
+                            combination = {
+                                'base':sym1_token2,
+                                'intermediate':sym1_token1,
+                                'ticker':sym2_token1,
+                            }
+                            combinations.append(combination)
+    return combinations
 
 def execute_trade(trade_rec_type, trading_ticker, market):
     debug('execute trade')
 
 def run_bot_for_ticker(ccxt_ticker, trading_ticker):
-    debug('run bot')
-    try:
-        
-        ticker_data = fetch_data(ccxt_ticker)
 
-        ticker_max, ticker_min = get_trade_recommendation(ticker_data)
+    markets, tickers = fetch_market_data(exchange_id)
 
-        if ticker_max['last'] > ticker_min['max'] > MARGIN:
-            execute_trade(ccxt_ticker, )
-    except:
-        print(f'error occurred while trade tokens')
+    debug('tickers', tickers)
+
+    combinations = get_trade_recommendation(tickers, 'USDT')
+
+    debug('combinations', combinations)
+
+    execute_trade('', ccxt_ticker, exchange_id)
 
 run_bot_for_ticker(CCXT_TICKER_NAME, TRADING_TICKER_NAME)
-
-
-# import ccxt
-# import time
-# binance = ccxt.binance() 
-# bitfinex = ccxt.bitfinex() 
-# bittrex = ccxt.bittrex() 
-# poloniex = ccxt.poloniex()
-# binance_ticker = binance.fetch_ticker('BTC/USDT') 
-# bitfinex_ticker = bitfinex.fetch_ticker('BTC/USDT') 
-# bittrex_ticker = bittrex.fetch_ticker('BTC/USDT') 
-# poloniex_ticker = poloniex.fetch_ticker('BTC/USDT')
-# debug('binance ticker', binance_ticker['last'])
-# if binance_ticker['last'] < bitfinex_ticker['last']:
-#     print("Arbitrage opportunity! Buy BTC on Binance and sell on Bitfinex.") 
-# elif binance_ticker['last'] > bitfinex_ticker['last']: 
-#     print("Arbitrage opportunity! Buy BTC on Bitfinex and sell on Binance.") 
-# else:
-#     print("No arbitrage opportunity.") 
-# if binance_ticker['last'] < bittrex_ticker['last']: 
-#     print("Arbitrage opportunity! Buy BTC on Binance and sell on Bittrex.") 
-# elif binance_ticker['last'] > bittrex_ticker['last']:
-#     print("Arbitrage opportunity! Buy BTC on Bittrex and sell on Binance.") 
-# else:
-#     print("No arbitrage opportunity.") 
-# if binance_ticker['last'] < poloniex_ticker['last']: 
-#     print("Arbitrage opportunity! Buy BTC on Binance and sell on Poloniex.") 
-# elif binance_ticker['last'] > poloniex_ticker['last']:
-#     print("Arbitrage opportunity! Buy BTC on Poloniex and sell on Binance.") 
-# else:
-#     print("No arbitrage opportunity.")
