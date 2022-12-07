@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 import json
 import os.path
 from gql import gql, Client
@@ -9,13 +10,19 @@ url = 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2'
 pairs = []
 recommend_combinations = []
 
-LIMIT = 0
+MARGIN = 1.005
+
+def log(text):
+    now = datetime.now()
+
+    # current_time = now.strftime("%Y %m %d %H:%M:%S")
+    current_time = now.strftime("%H:%M:%S")
+    print(f'{current_time}  {text}\n')
 
 def console(str):
   print(f'<={str}=>')
 
 def fetch_pairs():
-  console(f'fetch ticker{url  }')
   transport = AIOHTTPTransport(url=url)
   client = Client(transport=transport, fetch_schema_from_transport=True)
 
@@ -66,16 +73,10 @@ def load_from_json ():
         global pairs
         pairs = json.load(json_file)['pairs']
   else:
-    console(f'No file')
     save_2_json ()
     load_from_json()
   
 def get_trade_recommendations (base):
-  #
-  # 
-  #
-
-  console('get recommendations')
 
   for pair1 in pairs:
     pair1_symbol0 = pair1['token0']['symbol']
@@ -94,46 +95,70 @@ def get_trade_recommendations (base):
             pair3_symbol1 = pair3['token1']['symbol'];
 
             if pair3_symbol0 == pair2_symbol0 and pair3_symbol1 == base:
-              print (f'{base} {pair1_symbol0} {pair2_symbol0} {pair3_symbol1}')
-              recommend_combinations.append({
-                'base': base,
-                'intermediate1': pair1_symbol0,
-                'intermediate2': pair2_symbol0,
-                'ticker': pair2_symbol1,
-              })
+              
+              recommend_combinations.append([pair1, pair2, pair3])
+
   console('search ended')
-
-
+    
 def compute_profit(combination):
 
-  print('compute profit')
-  return 1;
+  return float(combination[0]['token0Price']) * float(combination[1]['token0Price']) * float(combination[2]['token1Price'])
+  # return 1;
 
 
 def execute_trade (combination):
-  console('execute trade')
+  # console('execute trade')
+  time.sleep(1)
+
+
 
 def uniswap_arbitrage_trade_bot():
 
-  console('trading started')
   ticker = 'USDT'
+  market = 'Uniswap'
+  print(
+          """
+              + ============================= +
+              |   AG ARBITRAGE TRADING BOT    |
+              + ============================= +
+              \n
+          """
+        )
+  print('You can trade your base token with ticker {0} on exchange market - {1}. This application works by triangular arbitrage strategy. \n'.format(ticker, market))
+  
   # symbols = ['WETH', 'USDT', 'USDC']
 
-  while(True):
+  # while(True):
     
     # fetch_tickers()
-    load_from_json()
+  load_from_json()
 
-    get_trade_recommendations(ticker)
+  get_trade_recommendations(ticker)
 
-    for combination in recommend_combinations:
-      profit = compute_profit(combination)
+  for combination in recommend_combinations:
+    profit = compute_profit(combination)
+    
+    title = 'triangular_arbitrage_trading'
+    combination_str = f'({combination[0]["token1"]["symbol"]}-{combination[1]["token1"]["symbol"]}-{combination[2]["token0"]["symbol"]}-{combination[2]["token1"]["symbol"]})'
+    desc = f'Found opportunity of profit {profit}'
+    now = datetime.now()
+    # if profit >= 1:
+    #     desc = f'Creating buy order of profit {profit_percent}% (USDT {rate1} EARN {profit})[clock={now}]'
+    # if profit <= -1:
+    #     desc = f'Creating sell order of profit {profit_percent}% [clock={now}]'
+    
+    rate1 = 0
+    
+    if profit > MARGIN:
+      desc = f'Creating buy order of profit {profit}% (USDT {rate1} EARN {profit})[clock={now}]'
+      execute_trade(combination)
 
-      if profit > LIMIT:
-        execute_trade(combination)
-    # print(recommend_combinations)
+    text = title + ' - ' + combination_str + ' ' + desc
 
-    time.sleep(100000)
+    log(text)
+    time.sleep(1)
+
+  time.sleep(1) 
 
 
 uniswap_arbitrage_trade_bot()
