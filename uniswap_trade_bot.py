@@ -98,8 +98,6 @@ def get_trade_recommendations (base):
               
               recommend_combinations.append([pair1, pair2, pair3])
 
-  console('search ended')
-    
 def compute_profit(combination):
 
   return float(combination[0]['token0Price']) * float(combination[1]['token0Price']) * float(combination[2]['token1Price'])
@@ -159,6 +157,5 @@ def uniswap_arbitrage_trade_bot():
     time.sleep(1)
 
   time.sleep(1) 
-
 
 uniswap_arbitrage_trade_bot()
