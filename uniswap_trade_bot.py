@@ -18,6 +18,7 @@ def log(text):
     # current_time = now.strftime("%Y %m %d %H:%M:%S")
     current_time = now.strftime("%H:%M:%S")
     print(f'{current_time}  {text}\n')
+    print(f'this is action test project')
 
 def console(str):
   print(f'<={str}=>')
